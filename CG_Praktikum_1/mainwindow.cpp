@@ -111,8 +111,11 @@ void MainWindow::render()
     m_program->bind();
 
     QMatrix4x4 matrix;
+    QMatrix4x4 matrix2;
     matrix.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
+    matrix2.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
     matrix.translate(0, 0, -2);
+    matrix2.translate(0, 0, -3);
     time_t now;
 //    time(&now);
     difftime(time, now);
@@ -124,6 +127,7 @@ void MainWindow::render()
     matrix.rotate(rotateY * speed * m_frame / screen()->refreshRate(), 0, 1, 0);
     matrix.rotate(rotateZ * speed * m_frame / screen()->refreshRate(), 0, 0, 1);
 //    matrix.rotate(100.0f * rotateZ * speed / screen()->refreshRate(), 0, 0, 1);
+    matrix2.rotate(rotateY * speed * m_frame / screen()->refreshRate(), 0, 1, 0);
 
     m_program->setUniformValue(m_matrixUniform, matrix);
 
@@ -145,6 +149,9 @@ void MainWindow::render()
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    m_program->setUniformValue(m_matrixUniform, matrix2);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glDisableVertexAttribArray(1);
