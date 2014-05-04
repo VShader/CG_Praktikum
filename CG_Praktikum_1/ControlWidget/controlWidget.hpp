@@ -9,11 +9,21 @@ namespace Ui {
 
 class ControlWidget : public QWidget
 {
+    Q_OBJECT
 public:
-    ControlWidget();
+    ControlWidget(QWidget *parent = NULL);
     ~ControlWidget();
 
+    void closeEvent(QCloseEvent *event);
 
+signals:
+//    void closing();
+    void speedChanged(int speed);
+    void rotaionChanged(int x, int y, int z);
+
+
+private slots:
+    void setRotation(int);
 
 private:
     Ui::ControlWidget *ui;

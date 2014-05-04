@@ -42,13 +42,25 @@
 
 #include <QOpenGLShaderProgram>
 
+
+class ControlWidget;
+class QCloseEvent;
+
+
 class MainWindow : public OpenGLWindow
 {
 public:
     MainWindow();
+    ~MainWindow();
 
     void initialize();
     void render();
+
+
+private slots:
+    void setRotation(int x, int y, int z);
+    void setSpeed(int speed) {this->speed = speed/100;}
+
 
 private:
     GLuint loadShader(GLenum type, const char *source);
@@ -59,4 +71,14 @@ private:
 
     QOpenGLShaderProgram *m_program;
     int m_frame;
+
+    ControlWidget *control;
+    double speed;
+    time_t time;
+    GLfloat rotateX;
+    GLfloat rotateY;
+    GLfloat rotateZ;
+
+
+    void closeEvent(QCloseEvent *event);
 };

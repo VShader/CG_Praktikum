@@ -42,6 +42,7 @@
 #include "controlWidget.hpp"
 
 #include <QtGui>
+#include <ctime>
 
 static const char *vertexShaderSource =
     "attribute highp vec4 posAttr;\n"
@@ -61,9 +62,25 @@ static const char *fragmentShaderSource =
 
 MainWindow::MainWindow()
     : m_program(0)
-    , m_frame(0)
+    , m_frame(0),
+        control(new ControlWidget()),
+        speed(1), rotateX(0), rotateY(0), rotateZ(0)
 {
+//    time(&time);
+    control->show();
+
+//    connect(control, &ControlWidget::closing, this, &MainWindow::close);
+//    connect(this, &QWindow::close, control, &QWidget::close);
+    connect(control, &ControlWidget::speedChanged, this, &MainWindow::setSpeed);
+    connect(control, &ControlWidget::rotaionChanged, this, &MainWindow::setRotation);
 }
+
+MainWindow::~MainWindow()   {
+    delete control;
+}
+
+
+
 
 GLuint MainWindow::loadShader(GLenum type, const char *source)
 {
@@ -72,6 +89,7 @@ GLuint MainWindow::loadShader(GLenum type, const char *source)
     glCompileShader(shader);
     return shader;
 }
+
 
 void MainWindow::initialize()
 {
@@ -95,7 +113,17 @@ void MainWindow::render()
     QMatrix4x4 matrix;
     matrix.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
     matrix.translate(0, 0, -2);
-    matrix.rotate(100.0f * m_frame / screen()->refreshRate(), 0, 1, 0);
+    time_t now;
+//    time(&now);
+    difftime(time, now);
+    matrix.rotate(rotateX * speed * m_frame / screen()->refreshRate(), 1, 0, 0);
+    matrix.rotate(rotateY * speed * m_frame / screen()->refreshRate(), 0, 1, 0);
+    matrix.rotate(rotateZ * speed * m_frame / screen()->refreshRate(), 0, 0, 1);
+    matrix.translate(1.0f, 0, 0);
+    matrix.rotate(rotateX * speed * m_frame / screen()->refreshRate(), 1, 0, 0);
+    matrix.rotate(rotateY * speed * m_frame / screen()->refreshRate(), 0, 1, 0);
+    matrix.rotate(rotateZ * speed * m_frame / screen()->refreshRate(), 0, 0, 1);
+//    matrix.rotate(100.0f * rotateZ * speed / screen()->refreshRate(), 0, 0, 1);
 
     m_program->setUniformValue(m_matrixUniform, matrix);
 
@@ -125,4 +153,15 @@ void MainWindow::render()
     m_program->release();
 
     ++m_frame;
+//    time(&time);
+}
+
+void MainWindow::setRotation(int x, int y, int z)
+{
+ rotateX = x;   rotateY = y;    rotateZ = z;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    control->close();
 }

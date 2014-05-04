@@ -40,7 +40,6 @@
 
 #include "mainwindow.h"
 #include <QApplication>
-#include "controlWidget.hpp"
 
 int main(int argc, char **argv)
 {
@@ -55,9 +54,6 @@ int main(int argc, char **argv)
     window.show();
 
     window.setAnimating(true);
-
-    ControlWidget widi;
-    widi.show();
 
     return app.exec();
 }

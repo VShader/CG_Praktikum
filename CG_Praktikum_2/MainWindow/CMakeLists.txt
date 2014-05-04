@@ -1,0 +1,13 @@
+set(dir MainWindow)
+set(${dir}_hpp mainWindow.hpp openGLWindow.hpp)
+set(${dir}_cpp mainWindow.cpp openGLWindow.cpp)
+set(${dir}_ui mainWindow.ui)
+set(${dir}_shader vertexShader.glsl fragmentShader.glsl)
+
+foreach(var ${${dir}_hpp} ${${dir}_cpp} ${${dir}_ui} ${${dir}_shader})
+	set(sources ${sources} ${dir}/${var})
+endforeach(var)
+foreach(var ${${dir}_ui})
+	set(ui ${ui} ${dir}/${var})
+endforeach(var)
+include_directories(${dir})
