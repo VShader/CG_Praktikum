@@ -124,8 +124,8 @@ void MainWindow::render()
     matrix.rotate(rotateZ * speed * m_frame / screen()->refreshRate(), 0, 0, 1);
     matrix.translate(1.0f, 0, 0);
     matrix.rotate(rotateX * speed * m_frame / screen()->refreshRate(), 1, 0, 0);
-    matrix.rotate(rotateY * speed * m_frame / screen()->refreshRate(), 0, 1, 0);
-    matrix.rotate(rotateZ * speed * m_frame / screen()->refreshRate(), 0, 0, 1);
+    matrix.rotate(-rotateY * speed * m_frame / screen()->refreshRate(), 0, 1, 0);
+    matrix.rotate(-rotateZ * speed * m_frame / screen()->refreshRate(), 0, 0, 1);
 //    matrix.rotate(100.0f * rotateZ * speed / screen()->refreshRate(), 0, 0, 1);
     matrix2.rotate(rotateY * speed * m_frame / screen()->refreshRate(), 0, 1, 0);
 

@@ -59,7 +59,7 @@ public:
 
 private slots:
     void setRotation(int x, int y, int z);
-    void setSpeed(int speed) {this->speed = speed/100;}
+    void setSpeed(int speed) {this->speed = speed/100.0f;}
 
 
 private:
@@ -73,7 +73,7 @@ private:
     int m_frame;
 
     ControlWidget *control;
-    double speed;
+    float speed;
     time_t time;
     GLfloat rotateX;
     GLfloat rotateY;

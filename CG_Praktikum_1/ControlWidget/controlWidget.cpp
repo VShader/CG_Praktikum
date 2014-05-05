@@ -1,6 +1,7 @@
 #include "controlWidget.hpp"
 #include "ui_controlWidget.h"
 #include <QDebug>
+#include <QApplication>
 
 ControlWidget::ControlWidget(QWidget *parent) :
     QWidget(parent),
@@ -27,7 +28,7 @@ ControlWidget::~ControlWidget()
 
 void ControlWidget::closeEvent(QCloseEvent *event)
 {
-    //    closing();
+    qApp->quit();
 }
 
 void ControlWidget::setRotation(int)
