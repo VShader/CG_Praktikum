@@ -44,7 +44,7 @@ void Sunsystem::run()
     }
     // rotation;
     // save finalMatrix
-    root->data->resultmatrix *= root->data->rotation;
+    root->data->resultmatrix *= root->data->rotation *= root->data->scale;
 }
 
 void Sunsystem::run(Leaf<Planet> *currentPlanet, QMatrix4x4 &mat)
@@ -57,5 +57,5 @@ void Sunsystem::run(Leaf<Planet> *currentPlanet, QMatrix4x4 &mat)
     }
     // rotation;
     // save finalMatrix
-    currentPlanet->data->resultmatrix *= currentPlanet->data->rotation;
+    currentPlanet->data->resultmatrix *= currentPlanet->data->rotation * currentPlanet->data->scale;
 }

@@ -13,14 +13,15 @@ class Planet
 {
 public:
     Planet(std::string name) : name(name) {}
-    Planet(std::string name, GLfloat *mesh, const QMatrix4x4 &rotation ,const QMatrix4x4 orbit,
-           const QMatrix4x4 orbit_rotation)
-        : name(name), mesh(mesh), rotation(rotation), orbit(orbit), orbit_rotation(orbit_rotation) {}
-
+    Planet(std::string name, GLfloat *mesh, const QMatrix4x4 &scale, const QMatrix4x4 &rotation,
+           const QMatrix4x4 &orbit, const QMatrix4x4 &orbit_rotation)
+        : name(name), mesh(mesh), scale(scale), rotation(rotation),
+          orbit(orbit), orbit_rotation(orbit_rotation) {}
 
 
     std::string name;
     GLfloat *mesh;
+    QMatrix4x4 scale;
     QMatrix4x4 rotation;
     QMatrix4x4 orbit;
     QMatrix4x4 orbit_rotation;

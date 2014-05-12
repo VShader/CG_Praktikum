@@ -44,6 +44,8 @@
 #include <QtGui>
 #include <ctime>
 
+#include "sunsystem.hpp"
+
 static const char *vertexShaderSource =
     "attribute highp vec4 posAttr;\n"
     "attribute lowp vec4 colAttr;\n"
@@ -93,6 +95,7 @@ GLuint MainWindow::loadShader(GLenum type, const char *source)
 
 void MainWindow::initialize()
 {
+    glEnable(GL_DEPTH_TEST);
     m_program = new QOpenGLShaderProgram(this);
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
     m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
@@ -106,36 +109,9 @@ void MainWindow::render()
 {
     glViewport(0, 0, width(), height());
 
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_program->bind();
-
-    QMatrix4x4 matrix;
-    QMatrix4x4 matrix2;
-    matrix.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
-    matrix2.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
-    matrix.translate(0, 0, -2);
-    matrix2.translate(0, 0, -3);
-    time_t now;
-//    time(&now);
-    difftime(time, now);
-    double move = 1;
-    if(speed != 0)
-    {
-        move = speed * m_frame / screen()->refreshRate();
-    }
-
-
-    matrix.rotate(rotateX * move, 1, 0, 0);
-    matrix.rotate(rotateY * move, 0, 1, 0);
-    matrix.rotate(rotateZ * move, 0, 0, 1);
-    matrix.translate(1.0f, 0, 0);
-    matrix.rotate(rotateX * move, 1, 0, 0);
-    matrix.rotate(-rotateY * move, 0, 1, 0);
-    matrix.rotate(-rotateZ * move, 0, 0, 1);
-    matrix2.rotate(rotateY * move, 0, 1, 0);
-
-    m_program->setUniformValue(m_matrixUniform, matrix);
 
     GLfloat vertices[] = {
         0.0f, 0.707f,
@@ -149,16 +125,105 @@ void MainWindow::render()
         0.0f, 0.0f, 1.0f
     };
 
+    time_t now;
+//    time(&now);
+    difftime(time, now);
+    double move = 1;
+    if(speed != 0)
+    {
+        move = speed * m_frame / screen()->refreshRate();
+    }
+
+
+
+    QMatrix4x4 scale;
+    QMatrix4x4 orbitRotMatrix;
+    QMatrix4x4 orbitMatrix;
+    QMatrix4x4 rotMatrix;
+    scale.scale(5.0f);
+    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    cg::Planet sonne("sonne", vertices, scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+
+    scale.setToIdentity();
+    orbitRotMatrix.setToIdentity();
+    orbitMatrix.setToIdentity();
+    rotMatrix.setToIdentity();
+    scale.scale(0.5f);
+    orbitRotMatrix.rotate(rotateY * move, 0, 1, 0);
+    orbitMatrix.translate(3.0f, 0, 0);
+    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    cg::Planet erde("erde", vertices, scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+
+    scale.setToIdentity();
+    orbitRotMatrix.setToIdentity();
+    orbitMatrix.setToIdentity();
+    rotMatrix.setToIdentity();
+    scale.scale(0.3f);
+    orbitRotMatrix.rotate(rotateY * move, 0, 1, 0);
+    orbitMatrix.translate(1.0f, 0, 0);
+    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    cg::Planet mond("mond", vertices, scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+
+    scale.setToIdentity();
+    orbitRotMatrix.setToIdentity();
+    orbitMatrix.setToIdentity();
+    rotMatrix.setToIdentity();
+    scale.scale(0.5f);
+    orbitRotMatrix.rotate(rotateY * move, 0, 1, 0);
+    orbitMatrix.translate(7.0f, 0, 0);
+    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    cg::Planet mars("mars", vertices, scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+
+    scale.setToIdentity();
+    orbitRotMatrix.setToIdentity();
+    orbitMatrix.setToIdentity();
+    rotMatrix.setToIdentity();
+    scale.scale(0.3f);
+    orbitRotMatrix.rotate(rotateY * move, 0, 1, 0);
+    orbitMatrix.translate(1.0f, 0, 0);
+    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    cg::Planet deimos("deimos", vertices, scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+
+    scale.setToIdentity();
+    orbitRotMatrix.setToIdentity();
+    orbitMatrix.setToIdentity();
+    rotMatrix.setToIdentity();
+    scale.scale(0.15f);
+    orbitRotMatrix.rotate(rotateY * move *15, 0, 1, 0);
+    orbitMatrix.translate(1.0f, 0, 0);
+    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    cg::Planet phobos("phobos", vertices, scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+
+    std::vector<cg::Planet*> vecPlanet {&sonne, &erde, &mond, &mars, &deimos, &phobos};
+    cg::Sunsystem sys;
+    sys.addChild(&sonne)->addChild(&erde)->addChild(&mond);
+    sys.addChild(&mars)->addChild(&deimos);
+    sys.getChild(1)->addChild(&phobos);
+    sys.run();
+
+
+    QMatrix4x4 camMatrix;
+    camMatrix.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
+//    camMatrix.rotate(25, 1, 0, 0);
+    camMatrix.translate(0, 0, -10);
+
+
+
+
+
     glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, vertices);
     glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    m_program->setUniformValue(m_matrixUniform, matrix2);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    for(cg::Planet *n : vecPlanet)
+    {
+        m_program->setUniformValue(m_matrixUniform, camMatrix * n->resultmatrix);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
+
 
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);

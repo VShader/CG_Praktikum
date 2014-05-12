@@ -56,33 +56,5 @@ int main(int argc, char **argv)
 
     window.setAnimating(true);
 
-
-    GLfloat vertices[] = {
-        0.0f, 0.707f,
-        -0.5f, -0.5f,
-        0.5f, -0.5f
-    };
-//    cg::Planet ente("Ente", vertices, QMatrix4x4 matrix.translate(0, 0, -2),
-//                    QMatrix4x4 matrix.translate(0, 0, -2), QMatrix4x4 matrix.translate(0, 0, -2));
-
-
-    QMatrix4x4 mat;
-    mat.translate(0, 0, -2);
-
-    cg::Planet sonne("sonne", vertices, mat, mat, mat);
-    cg::Planet erde("erde", vertices, mat, mat, mat);
-    cg::Planet mond("mond", vertices, mat, mat, mat);
-    cg::Planet mars("mars", vertices, mat, mat, mat);
-    cg::Planet deimos("deimos", vertices, mat, mat, mat);
-    cg::Planet phobos("phobos", vertices, mat, mat, mat);
-
-
-
-    cg::Sunsystem sys;
-    sys.addChild(&sonne)->addChild(&erde)->addChild(&mond);
-    sys.addChild(&mars)->addChild(&deimos);
-    sys.getChild(1)->addChild(&phobos);
-    sys.run();
-
     return app.exec();
 }

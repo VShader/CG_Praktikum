@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <QDebug>
 
 namespace cg
 {
@@ -15,7 +14,6 @@ public:
     Leaf(T *data) : data(data) {}
     ~Leaf()
     {
-        qDebug() << "Delete Leaf" << childs.size();
         for(auto n : childs)
         {
             delete n;
