@@ -119,6 +119,51 @@ void MainWindow::render()
         0.5f, -0.5f
     };
 
+    GLfloat cube[] = {
+        //front
+        -0.25f, -0.25f, -0.25f,
+        0.25f, -0.25f, -0.25f,
+        -0.25f, 0.25f, -0.25f,
+        -0.25f, 0.25f, -0.25f,
+        0.25f, -0.25f, -0.25f,
+        0.25f, 0.25f, -0.25f,
+        //back
+        -0.25f, -0.25f, 0.25f,
+        0.25f, -0.25f, 0.25f,
+        -0.25f, 0.25f, 0.25f,
+        -0.25f, 0.25f, 0.25f,
+        0.25f, -0.25f, 0.25f,
+        0.25f, 0.25f, 0.25f,
+        //left
+        -0.25f, -0.25f, -0.25f,
+        -0.25f, -0.25f, 0.25f,
+        -0.25f, 0.25f, -0.25f,
+        -0.25f, 0.25f, -0.25f,
+        -0.25f, -0.25f, 0.25f,
+        -0.25f, 0.25f, 0.25f,
+        //right
+        0.25f, -0.25f, -0.25f,
+        0.25f, -0.25f, 0.25f,
+        0.25f, 0.25f, -0.25f,
+        0.25f, 0.25f, -0.25f,
+        0.25f, -0.25f, 0.25f,
+        0.25f, 0.25f, 0.25f,
+        //top
+        -0.25f, 0.25f, -0.25f,
+        0.25f, 0.25f, -0.25f,
+        -0.25f, 0.25f, 0.25f,
+        -0.25f, 0.25f, 0.25f,
+        0.25f, 0.25f, 0.25f,
+        0.25f, 0.25f, -0.25f,
+        //botom
+        -0.25f, -0.25f, -0.25f,
+        0.25f, -0.25f, -0.25f,
+        -0.25f, -0.25f, 0.25f,
+        -0.25f, -0.25f, 0.25f,
+        0.25f, -0.25f, 0.25f,
+        0.25f, -0.25f, -0.25f
+    };
+
     GLfloat colors[] = {
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
@@ -211,7 +256,7 @@ void MainWindow::render()
 
 
 
-    glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, vertices);
+    glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, cube);
     glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 
     glEnableVertexAttribArray(0);
@@ -221,7 +266,7 @@ void MainWindow::render()
     for(cg::Planet *n : vecPlanet)
     {
         m_program->setUniformValue(m_matrixUniform, camMatrix * n->resultmatrix);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
 
