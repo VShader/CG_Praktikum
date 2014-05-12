@@ -1,0 +1,12 @@
+set(dir ControlWidget)
+set(${dir}_cpp controlWidget.cpp)
+set(${dir}_hpp controlWidget.hpp)
+set(${dir}_ui controlWidget.ui)
+
+foreach(var ${${dir}_cpp} ${${dir}_hpp} ${${dir}_ui})
+    set(sources ${sources} ${dir}/${var})
+endforeach(var)
+foreach(var ${${dir}_ui})
+    set(ui ${ui} ${dir}/${var})
+endforeach(var)
+include_directories(${dir})

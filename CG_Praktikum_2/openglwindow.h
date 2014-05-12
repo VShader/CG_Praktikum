@@ -38,51 +38,41 @@
 **
 ****************************************************************************/
 
-#include "mainwindow.h"
-#include <QApplication>
-#include "sunsystem.hpp"
+#include <QtGui/QWindow>
+#include <QtGui/QOpenGLFunctions>
 
-int main(int argc, char **argv)
+class QPainter;
+class QOpenGLContext;
+class QOpenGLPaintDevice;
+
+class OpenGLWindow : public QWindow, protected QOpenGLFunctions
 {
-    QApplication app(argc, argv);
+    Q_OBJECT
+public:
+    explicit OpenGLWindow(QWindow *parent = 0);
+    ~OpenGLWindow();
 
-    QSurfaceFormat format;
-    format.setSamples(4);
+    virtual void render(QPainter *painter);
+    virtual void render();
 
-    MainWindow window;
-    window.setFormat(format);
-    window.resize(640, 480);
-    window.show();
+    virtual void initialize();
 
-    window.setAnimating(true);
+    void setAnimating(bool animating);
 
+public slots:
+    void renderLater();
+    void renderNow();
 
-    GLfloat vertices[] = {
-        0.0f, 0.707f,
-        -0.5f, -0.5f,
-        0.5f, -0.5f
-    };
-//    cg::Planet ente("Ente", vertices, QMatrix4x4 matrix.translate(0, 0, -2),
-//                    QMatrix4x4 matrix.translate(0, 0, -2), QMatrix4x4 matrix.translate(0, 0, -2));
+protected:
+    bool event(QEvent *event);
 
+    void exposeEvent(QExposeEvent *event);
+    void resizeEvent(QResizeEvent *event);
 
-    QMatrix4x4 mat;
-    mat.translate(0, 0, -2);
+private:
+    bool m_update_pending;
+    bool m_animating;
 
-    cg::Planet sonne("sonne", vertices, mat, mat, mat);
-    cg::Planet erde("erde", vertices, mat, mat, mat);
-    cg::Planet mond("mond", vertices, mat, mat, mat);
-    cg::Planet mars("mars", vertices, mat, mat, mat);
-    cg::Planet deimos("deimos", vertices, mat, mat, mat);
-    cg::Planet phobos("phobos", vertices, mat, mat, mat);
-
-
-
-    cg::Sunsystem sys;
-    sys.addChild(&sonne)->addChild(&erde)->addChild(&mond);
-    sys.addChild(&mars)->addChild(&deimos);
-    sys.getChild(1)->addChild(&phobos);
-    sys.run();
-
-    return app.exec();
-}
+    QOpenGLContext *m_context;
+    QOpenGLPaintDevice *m_device;
+};

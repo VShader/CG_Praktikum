@@ -38,51 +38,47 @@
 **
 ****************************************************************************/
 
-#include "mainwindow.h"
-#include <QApplication>
-#include "sunsystem.hpp"
+#include "openglwindow.h"
 
-int main(int argc, char **argv)
+#include <QOpenGLShaderProgram>
+
+
+class ControlWidget;
+class QCloseEvent;
+
+
+class MainWindow : public OpenGLWindow
 {
-    QApplication app(argc, argv);
+public:
+    MainWindow();
+    ~MainWindow();
 
-    QSurfaceFormat format;
-    format.setSamples(4);
-
-    MainWindow window;
-    window.setFormat(format);
-    window.resize(640, 480);
-    window.show();
-
-    window.setAnimating(true);
+    void initialize();
+    void render();
 
 
-    GLfloat vertices[] = {
-        0.0f, 0.707f,
-        -0.5f, -0.5f,
-        0.5f, -0.5f
-    };
-//    cg::Planet ente("Ente", vertices, QMatrix4x4 matrix.translate(0, 0, -2),
-//                    QMatrix4x4 matrix.translate(0, 0, -2), QMatrix4x4 matrix.translate(0, 0, -2));
+private slots:
+    void setRotation(int x, int y, int z);
+    void setSpeed(int speed) {this->speed = speed/100.0f;}
 
 
-    QMatrix4x4 mat;
-    mat.translate(0, 0, -2);
+private:
+    GLuint loadShader(GLenum type, const char *source);
 
-    cg::Planet sonne("sonne", vertices, mat, mat, mat);
-    cg::Planet erde("erde", vertices, mat, mat, mat);
-    cg::Planet mond("mond", vertices, mat, mat, mat);
-    cg::Planet mars("mars", vertices, mat, mat, mat);
-    cg::Planet deimos("deimos", vertices, mat, mat, mat);
-    cg::Planet phobos("phobos", vertices, mat, mat, mat);
+    GLuint m_posAttr;
+    GLuint m_colAttr;
+    GLuint m_matrixUniform;
+
+    QOpenGLShaderProgram *m_program;
+    int m_frame;
+
+    ControlWidget *control;
+    float speed;
+    time_t time;
+    GLfloat rotateX;
+    GLfloat rotateY;
+    GLfloat rotateZ;
 
 
-
-    cg::Sunsystem sys;
-    sys.addChild(&sonne)->addChild(&erde)->addChild(&mond);
-    sys.addChild(&mars)->addChild(&deimos);
-    sys.getChild(1)->addChild(&phobos);
-    sys.run();
-
-    return app.exec();
-}
+    void closeEvent(QCloseEvent *event);
+};
