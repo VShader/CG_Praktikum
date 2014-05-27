@@ -1,3 +1,4 @@
 *.pdf
 **/*.user
 /*build
+**/*.obj
