@@ -15,6 +15,12 @@ if (OPENMP_FOUND)
 endif()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(resources "${CMAKE_CURRENT_SOURCE_DIR}/Resources/")
+else(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(resources "${CMAKE_CURRENT_BINARY_DIR}/Resources/")
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/config.hpp")
 
 
 set(sources main.cpp mainwindow.h mainwindow.cpp openglwindow.h openglwindow.cpp)

@@ -38,6 +38,7 @@
 **
 ****************************************************************************/
 
+#include "config.hpp"
 #include "mainwindow.h"
 #include "controlWidget.hpp"
 
@@ -86,16 +87,17 @@ void MainWindow::initialize()
     glEnable(GL_DEPTH_TEST);
     m_program = new QOpenGLShaderProgram(this);
     cg::FileLoader loader;
-    std::string temp = loader.loadShader("vertexShader.glsl");
+    std::string address = RESOURCES;
+    std::string temp = loader.loadShader(address+"vertexShader.glsl");
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, temp.c_str());
-    temp = loader.loadShader("fragmentShader.glsl");
+    temp = loader.loadShader(address+"fragmentShader.glsl");
     m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, temp.c_str());
     m_program->link();
     m_posAttr = m_program->attributeLocation("posAttr");
     m_colAttr = m_program->attributeLocation("colAttr");
     m_matrixUniform = m_program->uniformLocation("matrix");
 
-    myMesh = new cg::Mesh(loader.loadObj("./Resources/cubeIndex.obj"));
+    myMesh = new cg::Mesh(loader.loadObj(address+"cubeIndex.obj"));
 }
 
 void MainWindow::render()
@@ -122,15 +124,6 @@ void MainWindow::render()
         move = speed * m_frame / screen()->refreshRate();
     }
 
-//Buffer
-
-//    GLuint positionBuffer;
-//    GLuint indexBuffer;
-//    glGenBuffers(1, &positionBuffer);
-//    glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-//    glBufferData(GL_ARRAY_BUFFER, myMesh->v.size(), &myMesh->v[0], GL_STATIC_DRAW);
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-//    glEnableVertexAttribArray(0);
 
 
     QMatrix4x4 scale;
@@ -208,6 +201,17 @@ void MainWindow::render()
 
 
 
+//    //Buffer
+
+//        GLuint positionBuffer;
+//        GLuint indexBuffer;
+//        glGenBuffers(1, &positionBuffer);
+//        glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+//        glBufferData(GL_ARRAY_BUFFER, myMesh->v.size(), &myMesh->v[0], GL_STATIC_DRAW);
+
+
+
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, &myMesh->v[0]);
     glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <limits>
 #include <iostream>
+#include "config.hpp"
 #ifdef OpenMP
     #include <omp.h>
 #endif // OpenMP

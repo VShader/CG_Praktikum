@@ -42,6 +42,7 @@
 #include <QApplication>
 #include "fileLoader.hpp"
 #include <iostream>
+#include "config.hpp"
 
 int main(int argc, char **argv)
 {
@@ -58,7 +59,8 @@ int main(int argc, char **argv)
     window.setAnimating(true);
 
     cg::FileLoader load;
-    cg::Mesh mesh1 = load.loadObj("./Resources/cubeIndex.obj");
+    std::string address = RESOURCES;
+    cg::Mesh mesh1 = load.loadObj(address+"bunny.obj");
 
     cg::Mesh mesh2 = load.calcNormals();
 
