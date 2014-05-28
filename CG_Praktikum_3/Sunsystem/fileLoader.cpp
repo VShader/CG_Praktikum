@@ -142,9 +142,9 @@ Mesh FileLoader::calcNormals()
         for(unsigned int i=0; i<object.v_f.size()/3; ++i)
         {
             // p.x is v[v_f -1]
-            GLuint index1 = object.v_f[3*i+0]-1;
-            GLuint index2 = object.v_f[3*i+1]-1;
-            GLuint index3 = object.v_f[3*i+2]-1;
+            GLuint index1 = object.v_f[3*i+0];
+            GLuint index2 = object.v_f[3*i+1];
+            GLuint index3 = object.v_f[3*i+2];
             VecFloat3 p1(object.v[index1*3+0], object.v[index1*3+1], object.v[index1*3+2]);
             VecFloat3 p2(object.v[index2*3+0], object.v[index2*3+1], object.v[index2*3+2]);
             VecFloat3 p3(object.v[index3*3+0], object.v[index3*3+1], object.v[index3*3+2]);
@@ -210,7 +210,7 @@ void FileLoader::readFace(std::istream &is)
     while(is.good())
     {
         // read index of geometry vertex
-        while(is >> in) object.v_f.push_back(in);
+        while(is >> in) object.v_f.push_back(in-1);
         if(is.fail())
         {
             is.clear();
@@ -219,7 +219,7 @@ void FileLoader::readFace(std::istream &is)
             if(sign == '/')
             {
                 // read index of texture vertex
-                if(is >> in) object.vt_f.push_back(in);
+                if(is >> in) object.vt_f.push_back(in-1);
                 if(is.fail())
                 {
                     is.clear();
@@ -228,7 +228,7 @@ void FileLoader::readFace(std::istream &is)
                     if(sign == '/')
                     {
                         // read index of normal vertex
-                        if(is >> in) object.vn_f.push_back(in);
+                        if(is >> in) object.vn_f.push_back(in-1);
                     }
                 }
             }

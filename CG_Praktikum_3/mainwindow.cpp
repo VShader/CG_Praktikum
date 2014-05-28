@@ -97,7 +97,7 @@ void MainWindow::initialize()
     m_colAttr = m_program->attributeLocation("colAttr");
     m_matrixUniform = m_program->uniformLocation("matrix");
 
-    myMesh = new cg::Mesh(loader.loadObj(address+"cubeIndex.obj"));
+    myMesh = new cg::Mesh(loader.loadObj(address+"sphere.obj"));
 }
 
 void MainWindow::render()
@@ -194,35 +194,40 @@ void MainWindow::render()
 
     QMatrix4x4 camMatrix;
     camMatrix.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
-    camMatrix.translate(0, 0, -15);
+    camMatrix.translate(0, 0, -105);
     camMatrix.rotate(45, 1, 0, 0);
 
 
 
 
 
-//    //Buffer
+    //Buffer
 
-//        GLuint positionBuffer;
-//        GLuint indexBuffer;
-//        glGenBuffers(1, &positionBuffer);
-//        glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-//        glBufferData(GL_ARRAY_BUFFER, myMesh->v.size(), &myMesh->v[0], GL_STATIC_DRAW);
+        GLuint positionBuffer;
+        GLuint indexBuffer;
+        glGenBuffers(1, &positionBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+        glBufferData(GL_ARRAY_BUFFER, myMesh->v.size(), &myMesh->v[0], GL_STATIC_DRAW);
+        glGenBuffers(1, &indexBuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, myMesh->v_f.size(), &myMesh->v_f[0], GL_STATIC_DRAW);
 
 
 
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, &myMesh->v[0]);
-    glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+//    glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, &myMesh->v[0]);
+//    glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
 
     glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+//    glEnableVertexAttribArray(1);
 
 
     for(cg::Planet *n : vecPlanet)
     {
         m_program->setUniformValue(m_matrixUniform, camMatrix * n->resultmatrix);
-        glDrawArrays(GL_TRIANGLES, 0, myMesh->v.size()/3);
+        //glDrawArrays(GL_TRIANGLES, 0, myMesh->v.size()/3);
+        glDrawElements(GL_TRIANGLES, myMesh->v_f.size()/3, GL_UNSIGNED_INT, 0);
+//        glDrawElements(GL_TRIANGLES, myMesh->v_f.size()/3, GL_UNSIGNED_SHORT, &myMesh->v_f[0]);
     }
 
 
