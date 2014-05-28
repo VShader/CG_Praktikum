@@ -48,6 +48,7 @@
 #include "sunsystem.hpp"
 #include "fileLoader.hpp"
 #include <iostream>
+#include <QDebug>
 
 
 MainWindow::MainWindow()
@@ -69,8 +70,6 @@ MainWindow::~MainWindow()   {
     delete control;
     delete myMesh;
 }
-
-
 
 
 GLuint MainWindow::loadShader(GLenum type, const char *source)
@@ -130,7 +129,7 @@ void MainWindow::render()
     QMatrix4x4 orbitRotMatrix;
     QMatrix4x4 orbitMatrix;
     QMatrix4x4 rotMatrix;
-    scale.scale(5.0f);
+    scale.scale(4.0f);
     rotMatrix.rotate(rotateY * move, 0, 1, 0);
     cg::Planet sonne("sonne", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
@@ -140,7 +139,7 @@ void MainWindow::render()
     rotMatrix.setToIdentity();
     scale.scale(0.5f);
     orbitRotMatrix.rotate(rotateY * move, 0, 1, 0);
-    orbitMatrix.translate(3.0f, 0, 0);
+    orbitMatrix.translate(5.0f, 0, 0);
     rotMatrix.rotate(rotateY * move, 0, 1, 0);
     cg::Planet erde("erde", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
@@ -160,7 +159,7 @@ void MainWindow::render()
     rotMatrix.setToIdentity();
     scale.scale(0.5f);
     orbitRotMatrix.rotate(0.5 * rotateY * move + 15, 0, 1, 0);
-    orbitMatrix.translate(7.0f, 0, 0);
+    orbitMatrix.translate(10.0f, 0, 0);
     rotMatrix.rotate(rotateY * move, 0, 1, 0);
     cg::Planet mars("mars", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
@@ -194,7 +193,7 @@ void MainWindow::render()
 
     QMatrix4x4 camMatrix;
     camMatrix.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
-    camMatrix.translate(0, 0, -105);
+    camMatrix.translate(0, 0, -15);
     camMatrix.rotate(45, 1, 0, 0);
 
 
@@ -202,15 +201,14 @@ void MainWindow::render()
 
 
     //Buffer
-
         GLuint positionBuffer;
         GLuint indexBuffer;
         glGenBuffers(1, &positionBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-        glBufferData(GL_ARRAY_BUFFER, myMesh->v.size(), &myMesh->v[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, myMesh->v.size()*sizeof(GLfloat), &myMesh->v[0], GL_STATIC_DRAW);
         glGenBuffers(1, &indexBuffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, myMesh->v_f.size(), &myMesh->v_f[0], GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, myMesh->v_f.size()*sizeof(GLuint), &myMesh->v_f[0], GL_STATIC_DRAW);
 
 
 
@@ -226,8 +224,8 @@ void MainWindow::render()
     {
         m_program->setUniformValue(m_matrixUniform, camMatrix * n->resultmatrix);
         //glDrawArrays(GL_TRIANGLES, 0, myMesh->v.size()/3);
-        glDrawElements(GL_TRIANGLES, myMesh->v_f.size()/3, GL_UNSIGNED_INT, 0);
-//        glDrawElements(GL_TRIANGLES, myMesh->v_f.size()/3, GL_UNSIGNED_SHORT, &myMesh->v_f[0]);
+        glDrawElements(GL_TRIANGLES, myMesh->v_f.size(), GL_UNSIGNED_INT, 0);
+//        glDrawElements(GL_TRIANGLES, myMesh->v_f.size(), GL_UNSIGNED_SHORT, &myMesh->v_f[0]);
     }
 
 
