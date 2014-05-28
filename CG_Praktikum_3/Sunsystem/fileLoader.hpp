@@ -56,6 +56,7 @@ private:
 class VecFloat3
 {
 public:
+    VecFloat3() {}
     VecFloat3(GLfloat x, GLfloat y, GLfloat z) : x(x), y(y), z(z) {}
 
 
@@ -84,6 +85,13 @@ public:
     const VecFloat3 operator+(const VecFloat3 &operand)
     {
         return VecFloat3(x+operand.x, y+operand.y, z+operand.z);
+    }
+
+    void operator+=(const VecFloat3 &operand)
+    {
+        x = x+operand.x;
+        y = y+operand.y;
+        z = z+operand.z;
     }
 
     const GLfloat length()

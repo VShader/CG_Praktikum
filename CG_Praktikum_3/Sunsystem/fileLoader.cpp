@@ -4,9 +4,9 @@
 #include <sstream>
 #include <limits>
 #include <iostream>
-//#ifdef OpenMP
+#ifdef OpenMP
     #include <omp.h>
-//#endif // OpenMP
+#endif // OpenMP
 
 using namespace cg;
 
@@ -52,6 +52,7 @@ Mesh FileLoader::loadObj(const std::string &path)
     return object;
 
 }
+
 
 
 void FileLoader::multi(const std::string &path)
@@ -110,9 +111,11 @@ Mesh FileLoader::calcNormals()
     object.vn_f.clear();
 
     std::vector<VecFloat3*> tempNormal;
-    tempNormal.resize(object.v.size()/9);
-    if(object.vn_f.size() == 0)
+
+    if(object.v_f.size() == 0)
     {
+        tempNormal.resize(object.v.size()/9, NULL);
+
         //foreach triangle
 #pragma omp parallel for
         for(unsigned int i=0; i<object.v.size()/9; ++i)
@@ -126,55 +129,49 @@ Mesh FileLoader::calcNormals()
 
             tempNormal[i] = new VecFloat3(u.crossProduct(v));
         }
-        //normalize
-        for(VecFloat3 *n : tempNormal)
-        {
-            n->normalize();
-            object.vn.push_back(n->x);
-            object.vn.push_back(n->y);
-            object.vn.push_back(n->z);
-            delete n;
-        }
-
     }
     // if index based vertices
     else
     {
-        std::vector<GLuint> tempNormalIndex;
-        tempNormalIndex.resize(object.v_f.size());
+        tempNormal.resize(object.v.size()/3, NULL);
+        object.vn_f = object.v_f;
+        VecFloat3 tempVec;
 
         //foreach triangle
         for(unsigned int i=0; i<object.v_f.size()/3; ++i)
         {
             // p.x is v[v_f -1]
-            VecFloat3 p1(object.v[object.v_f[i*3+0]-1], object.v[object.v_f[i*3+1]-1], object.v[object.v_f[i*3+2]-1]);
-            VecFloat3 p2(object.v[object.v_f[i*3+3]-1], object.v[object.v_f[i*3+4]-1], object.v[object.v_f[i*3+5]-1]);
-            VecFloat3 p3(object.v[object.v_f[i*3+6]-1], object.v[object.v_f[i*3+7]-1], object.v[object.v_f[i*3+8]-1]);
+            GLuint index1 = object.v_f[3*i+0]-1;
+            GLuint index2 = object.v_f[3*i+1]-1;
+            GLuint index3 = object.v_f[3*i+2]-1;
+            VecFloat3 p1(object.v[index1*3+0], object.v[index1*3+1], object.v[index1*3+2]);
+            VecFloat3 p2(object.v[index2*3+0], object.v[index2*3+1], object.v[index2*3+2]);
+            VecFloat3 p3(object.v[index3*3+0], object.v[index3*3+1], object.v[index3*3+2]);
 
             VecFloat3 u = p2-p1;
             VecFloat3 v = p3-p1;
+            tempVec = u.crossProduct(v);
 
-            tempNormal[i*3+0] = new VecFloat3(u.crossProduct(v));
-            tempNormal[i*3+1] = new VecFloat3(*tempNormal[i*3+0]);
-            tempNormal[i*3+2] = new VecFloat3(*tempNormal[i*3+0]);
-            tempNormalIndex[i*3+0] = object.v_f[i*3+0];
-            tempNormalIndex[i*3+1] = object.v_f[i*3+1];
-            tempNormalIndex[i*3+2] = object.v_f[i*3+2];
+            // if normal is in index add new normal to old
+            if(tempNormal[index1])  *tempNormal[index1] += tempVec;
+            else    tempNormal[index1] = new VecFloat3(tempVec);
+            if(tempNormal[index2])  *tempNormal[index2] += tempVec;
+            else    tempNormal[index2] = new VecFloat3(tempVec);
+            if(tempNormal[index3])  *tempNormal[index3] += tempVec;
+            else    tempNormal[index3] = new VecFloat3(tempVec);
         }
-        for(unsigned int i=0; i<tempNormalIndex.size(); ++i)
-        {
-            for(unsigned int q=i+1; q<tempNormalIndex.size(); ++q)
-            {
-                if(tempNormalIndex[i] == tempNormalIndex[q])
-                {
-                    //tempNormal[tempNormalIndex[i]-1] = tempNormal[tempNormalIndex[i]-1]
-                }
-            }
-        }
+   }
 
+    //normalize
+    for(VecFloat3 *n : tempNormal)
+    {
+        n->normalize();
+        object.vn.push_back(n->x);
+        object.vn.push_back(n->y);
+        object.vn.push_back(n->z);
+        delete n;
     }
     return object;
-
 }
 
 

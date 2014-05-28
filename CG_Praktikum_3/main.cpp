@@ -58,11 +58,11 @@ int main(int argc, char **argv)
     window.setAnimating(true);
 
     cg::FileLoader load;
-    load.loadObj("./Resources/cube.obj");
+    cg::Mesh mesh1 = load.loadObj("./Resources/cubeIndex.obj");
 
-    cg::Mesh mesh = load.calcNormals();
+    cg::Mesh mesh2 = load.calcNormals();
 
-    for(GLfloat n : mesh.vn)
+    for(GLfloat n : mesh2.vn)
     {
         std::cout << n << std::endl;
     }
