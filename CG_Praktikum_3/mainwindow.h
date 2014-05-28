@@ -66,11 +66,15 @@ public:
 private slots:
     void setRotation(int x, int y, int z);
     void setSpeed(int speed) {this->speed = speed/100.0f;}
+    void keyPressEvent(QKeyEvent &event);
+    inline void toggleFullScreen(bool fullScreen);
 
 
 private:
     GLuint loadShader(GLenum type, const char *source);
 
+
+    bool fullScreen;
     GLuint m_posAttr;
     GLuint m_colAttr;
     GLuint m_matrixUniform;

@@ -52,8 +52,7 @@
 
 
 MainWindow::MainWindow()
-    : m_program(0)
-    , m_frame(0),
+    : fullScreen(false), m_program(0), m_frame(0),
         control(new ControlWidget()),
         speed(1), rotateX(0), rotateY(0), rotateZ(0)
 {
@@ -97,6 +96,16 @@ void MainWindow::initialize()
     m_matrixUniform = m_program->uniformLocation("matrix");
 
     myMesh = new cg::Mesh(loader.loadObj(address+"sphere.obj"));
+
+    //Buffer
+        GLuint positionBuffer;
+        GLuint indexBuffer;
+        glGenBuffers(1, &positionBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+        glBufferData(GL_ARRAY_BUFFER, myMesh->v.size()*sizeof(GLfloat), &myMesh->v[0], GL_STATIC_DRAW);
+        glGenBuffers(1, &indexBuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, myMesh->v_f.size()*sizeof(GLuint), &myMesh->v_f[0], GL_STATIC_DRAW);
 }
 
 void MainWindow::render()
@@ -198,20 +207,6 @@ void MainWindow::render()
 
 
 
-
-
-    //Buffer
-        GLuint positionBuffer;
-        GLuint indexBuffer;
-        glGenBuffers(1, &positionBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-        glBufferData(GL_ARRAY_BUFFER, myMesh->v.size()*sizeof(GLfloat), &myMesh->v[0], GL_STATIC_DRAW);
-        glGenBuffers(1, &indexBuffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, myMesh->v_f.size()*sizeof(GLuint), &myMesh->v_f[0], GL_STATIC_DRAW);
-
-
-
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 //    glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, &myMesh->v[0]);
 //    glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
@@ -240,8 +235,28 @@ void MainWindow::render()
 
 void MainWindow::setRotation(int x, int y, int z)
 {
- rotateX = x;   rotateY = y;    rotateZ = z;
+    rotateX = x;   rotateY = y;    rotateZ = z;
 }
+
+
+
+void MainWindow::keyPressEvent(QKeyEvent &event)
+{
+    if((event.key()==Qt::Key_Return) && (event.modifiers()==Qt::AltModifier))
+    {
+        fullScreen = !fullScreen;
+        toggleFullScreen(fullScreen);
+    }
+
+}
+
+void MainWindow::toggleFullScreen(bool fullScreen)
+{
+    if(fullScreen) showFullScreen();
+    else show();
+}
+
+
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
