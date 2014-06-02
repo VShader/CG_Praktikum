@@ -3,8 +3,11 @@
 
 #include <string>
 #include <vector>
+#include <queue>
 #include <GL/gl.h>
 #include <cmath>
+#include <QThread>
+#include <QMutex>
 
 
 namespace cg    {
@@ -26,32 +29,53 @@ public:
 class FileLoader
 {
 public:
-    std::string loadShader(const std::string &path);
-    Mesh loadObj(const std::string &path);
-    void multi(const std::string &path);
-    Mesh calcNormals();
+    std::string loadShader(const std::string& path);
+    Mesh loadObj(const std::string& path);
+    Mesh multi(const std::string& path);
+    void calcNormals(Mesh& object);
 
     enum LineType   {
-        GeometricVertices, TextureVertices, VertexNormals, ParameterSpaceVertices
+        GeometricVertices, TextureVertices, VertexNormals, ParameterSpaceVertices,
+        Face
     };
 
 
 
 private:
-    void readVector(LineType lineType, std::istream &is);
-    void readFace(std::istream &is);
+    void read(LineType lineType, std::istream& is, Mesh& object);
+    void readVector(std::istream& is, std::vector<GLfloat>& vec);
+    void readFace(std::istream& is, Mesh& object);
 
 
     std::string name;
+    std::queue<std::string> geometricVericesQueue;
+    std::queue<std::string> textureVericesQueue;
+    std::queue<std::string> vertexNormalsQueue;
+    std::queue<std::string> faceQueue;
+    QMutex mutex;
+    class ReadThread : public QThread
+    {
+    public:
+        ReadThread(FileLoader& parent, LineType lineType, Mesh& mesh, std::queue<std::string>& queue)
+            : parent(parent), lineType(lineType), mesh(mesh), queue(queue) {}
 
-    Mesh object;
 
+        void run();
+
+    private:
+        FileLoader& parent;
+        LineType lineType;
+        Mesh& mesh;
+        std::queue<std::string>& queue;
+    };
 
 };
 // noch zu implementieren o, s, usemtl, mtllib
 
 
 }
+
+
 
 class VecFloat3
 {
@@ -60,34 +84,39 @@ public:
     VecFloat3(GLfloat x, GLfloat y, GLfloat z) : x(x), y(y), z(z) {}
 
 
-    const GLfloat operator* (const VecFloat3 &operand)
+    GLfloat operator* (const VecFloat3& operand)
     {
         return x*operand.x + y*operand.y + z*operand.z;
     }
 
-    const VecFloat3 operator* (const GLfloat operand)
+    VecFloat3 operator* (const GLfloat operand)
     {
         return VecFloat3(x*operand, y*operand, z*operand);
     }
 
-    const VecFloat3 crossProduct(const VecFloat3 &operand)
+    VecFloat3 operator/ (const GLfloat operand)
+    {
+        return VecFloat3(x/operand, y/operand, z/operand);
+    }
+
+    VecFloat3 crossProduct(const VecFloat3& operand)
     {
         return VecFloat3(y*operand.z - z*operand.y,
                          z*operand.x - x*operand.z,
                          x*operand.y - y*operand.x);
     }
 
-    const VecFloat3 operator-(const VecFloat3 &operand)
+    VecFloat3 operator-(const VecFloat3& operand)
     {
         return VecFloat3(x-operand.x, y-operand.y, z-operand.z);
     }
 
-    const VecFloat3 operator+(const VecFloat3 &operand)
+    VecFloat3 operator+(const VecFloat3& operand)
     {
         return VecFloat3(x+operand.x, y+operand.y, z+operand.z);
     }
 
-    void operator+=(const VecFloat3 &operand)
+    void operator+=(const VecFloat3& operand)
     {
         x = x+operand.x;
         y = y+operand.y;

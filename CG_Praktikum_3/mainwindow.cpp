@@ -83,6 +83,7 @@ GLuint MainWindow::loadShader(GLenum type, const char *source)
 void MainWindow::initialize()
 {
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     m_program = new QOpenGLShaderProgram(this);
     cg::FileLoader loader;
     std::string address = RESOURCES;
@@ -95,7 +96,9 @@ void MainWindow::initialize()
     m_colAttr = m_program->attributeLocation("colAttr");
     m_matrixUniform = m_program->uniformLocation("matrix");
 
-    myMesh = new cg::Mesh(loader.loadObj(address+"sphere.obj"));
+//    myMesh = new cg::Mesh(loader.loadObj(address+"sphere.obj"));
+    myMesh = new cg::Mesh(loader.multi(address+"sphere.obj"));
+    if(myMesh->vn.size() == 0)  loader.calcNormals(*myMesh);
 
     //Buffer
         GLuint positionBuffer;
@@ -242,6 +245,7 @@ void MainWindow::setRotation(int x, int y, int z)
 
 void MainWindow::keyPressEvent(QKeyEvent &event)
 {
+    qDebug() <<"Hi";
     if((event.key()==Qt::Key_Return) && (event.modifiers()==Qt::AltModifier))
     {
         fullScreen = !fullScreen;

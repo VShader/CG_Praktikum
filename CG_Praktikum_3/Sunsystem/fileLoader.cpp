@@ -3,7 +3,6 @@
 #include <istream>
 #include <sstream>
 #include <limits>
-#include <iostream>
 #include "config.hpp"
 #ifdef OpenMP
     #include <omp.h>
@@ -11,7 +10,7 @@
 
 using namespace cg;
 
-std::string FileLoader::loadShader(const std::string &path)
+std::string FileLoader::loadShader(const std::string& path)
 {
     std::string result;
     std::string temp;
@@ -24,8 +23,9 @@ std::string FileLoader::loadShader(const std::string &path)
 
 
 
-Mesh FileLoader::loadObj(const std::string &path)
+Mesh FileLoader::loadObj(const std::string& path)
 {
+    Mesh object;
     std::ifstream ifs(path);
     std::string in;
 
@@ -33,16 +33,16 @@ Mesh FileLoader::loadObj(const std::string &path)
     {
         if(in == "v")
         {
-            readVector(GeometricVertices, ifs);
+            read(GeometricVertices, ifs, object);
         } else if(in == "vt")
         {
-            readVector(TextureVertices, ifs);
+            read(TextureVertices, ifs, object);
         } else if(in == "vn")
         {
-            readVector(VertexNormals, ifs);
+            read(VertexNormals, ifs, object);
         } else if(in == "f")
         {
-            readFace(ifs);
+            read(Face, ifs, object);
         } else
         {
             // if comment
@@ -56,13 +56,59 @@ Mesh FileLoader::loadObj(const std::string &path)
 
 
 
-void FileLoader::multi(const std::string &path)
+Mesh FileLoader::multi(const std::string& path)
 {
+    Mesh object;
+    std::ifstream ifs(path);
+    std::string type;
+    std::string line;
+
+//    while(getline(ifs, in)) result.push_back(in);
+
+    while(ifs >> type)
+    {
+        getline(ifs, line);
+        if(type == "v")
+        {
+            geometricVericesQueue.push(line);
+        } else if(type == "vt")
+        {
+            textureVericesQueue.push(line);
+        } else if(type == "vn")
+        {
+            vertexNormalsQueue.push(line);
+        } else if(type == "f")
+        {
+            faceQueue.push(line);
+        } else
+        {
+            // if comment
+            if(type[0] == '#');
+        }
+    }
+    ifs.close();
+
+    ReadThread gv(*this, GeometricVertices, object, geometricVericesQueue);
+    ReadThread tv(*this, TextureVertices, object, textureVericesQueue);
+    ReadThread n(*this, VertexNormals, object, vertexNormalsQueue);
+    ReadThread f(*this, Face, object, faceQueue);
+
+    gv.start();
+    tv.start();
+    n.start();
+    f.start();
+    gv.wait();
+    tv.wait();
+    n.wait();
+    f.wait();
+
+    return object;
+//    Mesh object;
 //    std::ifstream ifs(path);
 //    std::string in;
 //    std::vector<std::string> result;
 
-//    // fill string buffer
+//     //fill string buffer
 //    while(getline(ifs, in)) result.push_back(in);
 
 //    // set size of each vector to buffer size;
@@ -106,7 +152,7 @@ void FileLoader::multi(const std::string &path)
 
 
 
-Mesh FileLoader::calcNormals()
+void FileLoader::calcNormals(Mesh& object)
 {
     object.vn.clear();
     object.vn_f.clear();
@@ -152,58 +198,81 @@ Mesh FileLoader::calcNormals()
             VecFloat3 u = p2-p1;
             VecFloat3 v = p3-p1;
             tempVec = u.crossProduct(v);
+//            tempVec.normalize();
 
             // if normal is in index add new normal to old
-            if(tempNormal[index1])  *tempNormal[index1] += tempVec;
+            if(tempNormal[index1])
+            {
+                *tempNormal[index1] = (*tempNormal[index1] + tempVec)/2;
+//                tempNormal[index1]->normalize();
+            }
             else    tempNormal[index1] = new VecFloat3(tempVec);
-            if(tempNormal[index2])  *tempNormal[index2] += tempVec;
+            if(tempNormal[index2])
+            {
+//                *tempNormal[index2] += tempVec;
+                *tempNormal[index2] = (*tempNormal[index2] + tempVec)/2;
+//                tempNormal[index2]->normalize();
+            }
             else    tempNormal[index2] = new VecFloat3(tempVec);
-            if(tempNormal[index3])  *tempNormal[index3] += tempVec;
+            if(tempNormal[index3])
+            {
+                *tempNormal[index3] = (*tempNormal[index3] + tempVec)/2;
+//                *tempNormal[index3] += tempVec;
+//                tempNormal[index3]->normalize();
+            }
             else    tempNormal[index3] = new VecFloat3(tempVec);
         }
    }
 
     //normalize
-    for(VecFloat3 *n : tempNormal)
+    object.vn.resize(tempNormal.size()*3);
+#pragma omp parallel for
+    for(unsigned int i=0; i<tempNormal.size(); ++i)
     {
+        VecFloat3* n = tempNormal[i];
         n->normalize();
-        object.vn.push_back(n->x);
-        object.vn.push_back(n->y);
-        object.vn.push_back(n->z);
+        object.vn[i*3+0] = n->x;
+        object.vn[i*3+1] = n->y;
+        object.vn[i*3+2] = n->z;
         delete n;
     }
-    return object;
 }
 
 
 
-void FileLoader::readVector(LineType lineType, std::istream &is)
+void FileLoader::read(LineType lineType, std::istream& is, Mesh& object)
 {
-    std::vector<GLfloat> *pv;
-
     switch(lineType)
     {
     case GeometricVertices:
-        pv = &object.v;
+        readVector(is, object.v);
         break;
 
     case TextureVertices:
-        pv = &object.vt;
+        readVector(is, object.vt);
         break;
 
     case VertexNormals:
-        pv = &object.vn;
+        readVector(is, object.vn);
         break;
-    }
 
+    case Face:
+        readFace(is, object);
+    }
+}
+
+
+
+void FileLoader::readVector(std::istream& is, std::vector<GLfloat>& vec)
+{
     GLfloat in;
-    while (is >> in) pv->push_back(in);
+    while (is >> in) vec.push_back(in);
     is.clear();
 }
 
 
 
-void FileLoader::readFace(std::istream &is)
+void FileLoader::readFace(std::istream& is, Mesh& object)
 {
     GLuint in;
 
@@ -235,4 +304,15 @@ void FileLoader::readFace(std::istream &is)
         }
     }
     is.clear();
+}
+
+
+void FileLoader::ReadThread::run()
+{
+    while(!queue.empty())
+    {
+        std::stringstream ss(queue.front());
+        parent.read(lineType, ss, mesh);
+        queue.pop();
+    }
 }
