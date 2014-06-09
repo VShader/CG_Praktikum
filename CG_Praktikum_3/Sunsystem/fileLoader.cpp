@@ -3,6 +3,7 @@
 #include <istream>
 #include <sstream>
 #include <limits>
+#include <algorithm>
 #include "config.hpp"
 #ifdef OpenMP
     #include <omp.h>
@@ -27,39 +28,6 @@ Mesh FileLoader::loadObj(const std::string& path)
 {
     Mesh object;
     std::ifstream ifs(path);
-    std::string in;
-
-    while(ifs >> in)
-    {
-        if(in == "v")
-        {
-            read(GeometricVertices, ifs, object);
-        } else if(in == "vt")
-        {
-            read(TextureVertices, ifs, object);
-        } else if(in == "vn")
-        {
-            read(VertexNormals, ifs, object);
-        } else if(in == "f")
-        {
-            read(Face, ifs, object);
-        } else
-        {
-            // if comment
-            if(in[0] == '#');
-        }
-    }
-    ifs.close();
-    return object;
-
-}
-
-
-
-Mesh FileLoader::multi(const std::string& path)
-{
-    Mesh object;
-    std::ifstream ifs(path);
     std::string type;
     std::string line;
 
@@ -70,16 +38,16 @@ Mesh FileLoader::multi(const std::string& path)
         getline(ifs, line);
         if(type == "v")
         {
-            geometricVericesQueue.push(line);
+            geometricVericesQueue.push(std::move(line));
         } else if(type == "vt")
         {
-            textureVericesQueue.push(line);
+            textureVericesQueue.push(std::move(line));
         } else if(type == "vn")
         {
-            vertexNormalsQueue.push(line);
+            vertexNormalsQueue.push(std::move(line));
         } else if(type == "f")
         {
-            faceQueue.push(line);
+            faceQueue.push(std::move(line));
         } else
         {
             // if comment
@@ -103,51 +71,6 @@ Mesh FileLoader::multi(const std::string& path)
     f.wait();
 
     return object;
-//    Mesh object;
-//    std::ifstream ifs(path);
-//    std::string in;
-//    std::vector<std::string> result;
-
-//     //fill string buffer
-//    while(getline(ifs, in)) result.push_back(in);
-
-//    // set size of each vector to buffer size;
-//    v.resize(result.size());
-//    vt.resize(result.size());
-//    vn.resize(result.size());
-
-//    std::istringstream ss(result);
-//    int threadNumber = 0;
-////#pragma omp parallel private(threadNumber)
-//    {
-////        threadNumber =  omp_get_thread_num();
-//    while(ss >> in)
-//    {
-//        if(in == "v")
-//        {
-//            readVector(GeometricVertices, ss);
-//        } else if(in == "vt")
-//        {
-//            readVector(TextureVertices, ss);
-//        } else if(in == "vn")
-//        {
-//            readVector(VertexNormals, ss);
-//        } else if(in == "f")
-//        {
-//            readFace(ss);
-//        } else
-//        {
-//            // if comment
-//            if(in[0] == '#');
-//        }
-//    }
-//    }
-//    ifs.close();
-
-//    // delete unused space
-//    v.shrink_to_fit();
-//    vt.shrink_to_fit();
-    //    vn.shrink_to_fit();
 }
 
 
@@ -183,6 +106,7 @@ void FileLoader::calcNormals(Mesh& object)
         tempNormal.resize(object.v.size()/3, NULL);
         object.vn_f = object.v_f;
         VecFloat3 tempVec;
+        std::vector<NormalContainer> normal(object.v.size()/3);
 
         //foreach triangle
         for(unsigned int i=0; i<object.v_f.size()/3; ++i)
@@ -201,33 +125,21 @@ void FileLoader::calcNormals(Mesh& object)
 //            tempVec.normalize();
 
             // if normal is in index add new normal to old
-            if(tempNormal[index1])
-            {
-                *tempNormal[index1] = (*tempNormal[index1] + tempVec)/2;
-//                tempNormal[index1]->normalize();
-            }
-            else    tempNormal[index1] = new VecFloat3(tempVec);
-            if(tempNormal[index2])
-            {
-//                *tempNormal[index2] += tempVec;
-                *tempNormal[index2] = (*tempNormal[index2] + tempVec)/2;
-//                tempNormal[index2]->normalize();
-            }
-            else    tempNormal[index2] = new VecFloat3(tempVec);
-            if(tempNormal[index3])
-            {
-                *tempNormal[index3] = (*tempNormal[index3] + tempVec)/2;
-//                *tempNormal[index3] += tempVec;
-//                tempNormal[index3]->normalize();
-            }
-            else    tempNormal[index3] = new VecFloat3(tempVec);
+            normal[index1].push_back(tempVec);
+            normal[index2].push_back(tempVec);
+            normal[index3].push_back(tempVec);
+
+        }
+        for(size_t i=0; i<normal.size(); ++i)
+        {
+            tempNormal[i] = new VecFloat3(normal[i].getNormal());
         }
    }
 
     //normalize
     object.vn.resize(tempNormal.size()*3);
 #pragma omp parallel for
-    for(unsigned int i=0; i<tempNormal.size(); ++i)
+    for(size_t i=0; i<tempNormal.size(); ++i)
     {
         VecFloat3* n = tempNormal[i];
         n->normalize();
@@ -235,29 +147,6 @@ void FileLoader::calcNormals(Mesh& object)
         object.vn[i*3+1] = n->y;
         object.vn[i*3+2] = n->z;
         delete n;
-    }
-}
-
-
-
-void FileLoader::read(LineType lineType, std::istream& is, Mesh& object)
-{
-    switch(lineType)
-    {
-    case GeometricVertices:
-        readVector(is, object.v);
-        break;
-
-    case TextureVertices:
-        readVector(is, object.vt);
-        break;
-
-    case VertexNormals:
-        readVector(is, object.vn);
-        break;
-
-    case Face:
-        readFace(is, object);
     }
 }
 
@@ -307,12 +196,31 @@ void FileLoader::readFace(std::istream& is, Mesh& object)
 }
 
 
+
+void FileLoader::NormalContainer::push_back(const VecFloat3& normal)
+{
+    bool includes = false;
+    for(VecFloat3& x : vec) includes = x==normal;
+    if(!includes)   vec.push_back(normal);
+}
+
+
+
+VecFloat3 FileLoader::NormalContainer::getNormal()
+{
+    VecFloat3 result;
+    for(VecFloat3& x : vec) result+=x;
+    return std::move(result);
+}
+
+
+
 void FileLoader::ReadThread::run()
 {
     while(!queue.empty())
     {
-        std::stringstream ss(queue.front());
-        parent.read(lineType, ss, mesh);
+        std::stringstream ss(std::move(queue.front()));
+        doOp(ss);
         queue.pop();
     }
 }

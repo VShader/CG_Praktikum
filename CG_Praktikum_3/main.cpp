@@ -60,8 +60,7 @@ int main(int argc, char **argv)
 
     cg::FileLoader load;
     std::string address = RESOURCES;
-    cg::Mesh mesh1 = load.multi(address+"cubeIndex.obj");
-    cg::Mesh mesh2 = load.loadObj(address+"cubeIndex.obj");
+    cg::Mesh mesh1 = load.loadObj(address+"cubeIndex.obj");
 
     load.calcNormals(mesh1);
 

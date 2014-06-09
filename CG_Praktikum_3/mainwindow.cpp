@@ -96,8 +96,7 @@ void MainWindow::initialize()
     m_colAttr = m_program->attributeLocation("colAttr");
     m_matrixUniform = m_program->uniformLocation("matrix");
 
-//    myMesh = new cg::Mesh(loader.loadObj(address+"sphere.obj"));
-    myMesh = new cg::Mesh(loader.multi(address+"sphere.obj"));
+    myMesh = new cg::Mesh(loader.loadObj(address+"sphere.obj"));
     if(myMesh->vn.size() == 0)  loader.calcNormals(*myMesh);
 
     //Buffer
