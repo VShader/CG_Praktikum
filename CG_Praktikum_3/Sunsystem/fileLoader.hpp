@@ -9,6 +9,7 @@
 #include <QThread>
 #include <QMutex>
 #include <istream>
+#include <functional>
 
 
 namespace cg    {

@@ -75,6 +75,8 @@ private:
     GLuint loadShader(GLenum type, const char *source);
 
 
+    GLuint vao;
+
     bool fullScreen;
     GLuint m_position;
     GLuint m_normal;

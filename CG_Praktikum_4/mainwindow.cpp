@@ -82,6 +82,9 @@ GLuint MainWindow::loadShader(GLenum type, const char *source)
 
 void MainWindow::initialize()
 {
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -170,11 +173,11 @@ void MainWindow::render()
     m_program->bind();
 
 
-    GLfloat colors[] = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f
-    };
+//    GLfloat colors[] = {
+//        1.0f, 0.0f, 0.0f,
+//        0.0f, 1.0f, 0.0f,
+//        0.0f, 0.0f, 1.0f
+//    };
 
     time_t now;
 //    time(&now);
@@ -268,10 +271,11 @@ void MainWindow::render()
 //    glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 //    glEnableVertexAttribArray(m_posAttr);
 //    glEnableVertexAttribArray(m_colAttr);
-    QVector3D diffuse_albedo(0.5, 0.2, 0.7);
-    QVector3D specular_albedo(0.7, 0.7, 0.7);
+    QVector3D ambient(0.2, 0.2, 0.2);
+    QVector3D diffuse_albedo(1.0, 0.88, 0.25);
+    QVector3D specular_albedo(1.0, 1.0, 1.0);
     GLfloat specular_power = 128.0;
-    QVector3D light_color(0.7, 0.7, 0.7);
+    QVector3D light_color(0.2, 0.7, 0.2);
 
     for(cg::Planet* n : vecPlanet)
     {
@@ -286,7 +290,7 @@ void MainWindow::render()
         m_program->setUniformValue(m_view_matrix, viewMatrix);
         m_program->setUniformValue(m_proj_matrix, projMatrix);
 
-        m_program->setUniformValue(m_ambient, projMatrix);
+        m_program->setUniformValue(m_ambient, ambient);
         m_program->setUniformValue(m_diffuse_albedo, diffuse_albedo);
         m_program->setUniformValue(m_specular_albedo, specular_albedo);
         m_program->setUniformValue(m_specular_power, specular_power);

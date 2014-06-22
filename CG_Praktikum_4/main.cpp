@@ -50,8 +50,8 @@ int main(int argc, char **argv)
 
     QSurfaceFormat format;
     format.setSamples(4);
-    //format.setVersion(4, 3);
-    //format.setProfile(QSurfaceFormat::CoreProfile);
+    format.setVersion(4, 3);
+    format.setProfile(QSurfaceFormat::CoreProfile);
 
     MainWindow window;
     window.setFormat(format);
@@ -60,16 +60,16 @@ int main(int argc, char **argv)
 
     window.setAnimating(true);
 
-    cg::FileLoader load;
-    std::string address = RESOURCES;
-    cg::Mesh mesh1 = load.loadObj(address+"cubeIndex.obj");
+//    cg::FileLoader load;
+//    std::string address = RESOURCES;
+//    cg::Mesh mesh1 = load.loadObj(address+"cubeIndex.obj");
 
-    load.calcNormals(mesh1);
+//    load.calcNormals(mesh1);
 
-    for(GLfloat n : mesh1.vn)
-    {
-        std::cout << n << std::endl;
-    }
+//    for(GLfloat n : mesh1.vn)
+//    {
+//        std::cout << n << std::endl;
+//    }
 
     return app.exec();
 }

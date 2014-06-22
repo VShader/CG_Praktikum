@@ -1,4 +1,4 @@
-//#version 430 core
+#version 430 core
 
 in vec4 position;
 in vec3 normal;
@@ -24,7 +24,7 @@ void main() {
     // View-Space normal
     vs_out.normal = normalize(mat3(mv_matrix * view_matrix) * normal);
     // Light Vector
-    vs_out.light = normalize(vec3(light_pos) - P.xyz);
+    vs_out.light = normalize(vec3(view_matrix * light_pos) - P.xyz);
     // View Vector
     vs_out.view = normalize(-P.xyz);
 
