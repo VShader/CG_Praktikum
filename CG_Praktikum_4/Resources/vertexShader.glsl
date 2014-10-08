@@ -1,4 +1,4 @@
-#version 430 core
+#version 150 core
 
 in vec4 position;
 in vec3 normal;

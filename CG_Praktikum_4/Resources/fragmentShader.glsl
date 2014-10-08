@@ -1,6 +1,7 @@
-#version 430 core
+#version 150 core
 
-layout(location=0) out vec4 color;
+//layout(location=0) out vec4 color;
+out vec4 fColor;
 
 in VS_OUT
 {
@@ -29,7 +30,7 @@ void main() {
 
     vec3 diffuse = max(dot(fs_in.normal, fs_in.light), 0.0) * diffuse_albedo;
     vec3 specular = pow(max(dot(reflection, fs_in.view), 0.0), specular_power) * specular_albedo;
-   color = vec4(ambient*diffuse_albedo + diffuse + specular, 1.0);
+   fColor = vec4(ambient*diffuse_albedo + diffuse + specular, 1.0);
 
     //gl_FragColor = vec4(1.0f, 0.0f, 0.0f, 0.5f);
 }

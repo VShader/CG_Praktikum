@@ -22,9 +22,6 @@ signals:
     void rotaionChanged(int x, int y, int z);
 
 
-private slots:
-    void setRotation(int);
-
 private:
     Ui::ControlWidget *ui;
 };

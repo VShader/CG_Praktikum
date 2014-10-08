@@ -40,13 +40,13 @@
 
 #include <QtGui/QWindow>
 #include <QtGui/QOpenGLFunctions>
-#include <QOpenGLFunctions_4_3_Core>
+#include <QOpenGLFunctions_3_2_Core>
 
 class QPainter;
 class QOpenGLContext;
 class QOpenGLPaintDevice;
 
-class OpenGLWindow : public QWindow, protected QOpenGLFunctions_4_3_Core
+class OpenGLWindow : public QWindow, protected QOpenGLFunctions_3_2_Core
 {
     Q_OBJECT
 public:

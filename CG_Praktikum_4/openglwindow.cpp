@@ -45,6 +45,8 @@
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLPaintDevice>
 #include <QtGui/QPainter>
+#include <QMessageBox>
+#include <QApplication>
 #include <QDebug>
 
 OpenGLWindow::OpenGLWindow(QWindow *parent)
@@ -131,7 +133,18 @@ void OpenGLWindow::renderNow()
         m_context = new QOpenGLContext(this);
         m_context->setFormat(requestedFormat());
         m_context->create();
-        qDebug() << "OpenGL Version: " << requestedFormat().majorVersion() << requestedFormat().minorVersion();
+        float version = requestedFormat().majorVersion() + 0.1 * requestedFormat().minorVersion();
+        qDebug() << "OpenGL Version: " << version;
+        if(version < 3.2)   {
+            QString message = "OpenGL Version " + QString::number(requestedFormat().majorVersion())
+                    +'.'+ QString::number(requestedFormat().minorVersion()) + " detected but 3.2 is reqired!";
+            QMessageBox box;
+            box.setIcon(QMessageBox::Critical);
+            box.setText(message);
+            box.exec();
+            qApp->quit();
+
+        }
 
         needsInitialize = true;
     }

@@ -54,15 +54,13 @@
 MainWindow::MainWindow()
     : fullScreen(false), m_program(0), m_frame(0),
         control(new ControlWidget()),
-        speed(1), rotateX(0), rotateY(0), rotateZ(0)
+        speed(1), rotateX(0), rotateY(0), rotateZ(0), lastTime(0)
 {
-//    time(&time);
     control->show();
 
 //    connect(control, &ControlWidget::closing, this, &MainWindow::close);
 //    connect(this, &QWindow::close, control, &QWidget::close);
     connect(control, &ControlWidget::speedChanged, this, &MainWindow::setSpeed);
-    connect(control, &ControlWidget::rotaionChanged, this, &MainWindow::setRotation);
 }
 
 MainWindow::~MainWindow()   {
@@ -162,6 +160,35 @@ void MainWindow::initialize()
         lightPositions.push_back( {0.0f, 0.0f, 5.0f, 1.0f});
         lightPositions.push_back( {5.0f, 0.0f, 0.0f, 1.0f});
         lightPositions.push_back( {5.0f, 3.0f, 0.0f, 1.0f});
+
+
+//        GLuint gbuffer;
+//        GLuint gbuffer_tex[3];
+
+//        glGenFramebuffers(1, &gbuffer);
+//        glBindFramebuffer(GL_FRAMEBUFFER, gbuffer);
+
+//        glGenTextures(3, gbuffer_tex);
+//        glBindTexture(GL_TEXTURE_2D, gbuffer_tex[0]);
+//        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32UI, width(), height());
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+//        glBindTexture(GL_TEXTURE_2D, gbuffer_tex[1]);
+//        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width(), height());
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+//        glBindTexture(GL_TEXTURE_2D, gbuffer_tex[2]);
+//        glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, width(), height());
+
+//        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, gbuffer_tex[0], 0);
+//        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, gbuffer_tex[1], 0);
+//        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, gbuffer_tex[2], 0);
+
+//        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 }
 
 void MainWindow::render()
@@ -179,22 +206,15 @@ void MainWindow::render()
 //        0.0f, 0.0f, 1.0f
 //    };
 
-    time_t now;
-//    time(&now);
-    difftime(time, now);
-    double move = 1;
-    if(speed != 0)
-    {
-        move = speed * m_frame / screen()->refreshRate();
-    }
+
+    now = clock();
+    m_frame = m_frame + speed*difftime(now, lastTime);
+    lastTime = now;
 
 
-    QMatrix4x4 scale;
-    QMatrix4x4 orbitRotMatrix;
-    QMatrix4x4 orbitMatrix;
-    QMatrix4x4 rotMatrix;
+    // Planet Matrix
     scale.scale(4.0f);
-    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    rotMatrix.rotate(m_frame, 0, 1, 0);
     cg::Planet sonne("sonne", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
@@ -202,9 +222,9 @@ void MainWindow::render()
     orbitMatrix.setToIdentity();
     rotMatrix.setToIdentity();
     scale.scale(0.5f);
-    orbitRotMatrix.rotate(rotateY * move, 0, 1, 0);
+    orbitRotMatrix.rotate(m_frame, 0, 1, 0);
     orbitMatrix.translate(5.0f, 0, 0);
-    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    rotMatrix.rotate(m_frame, 0, 1, 0);
     cg::Planet erde("erde", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
@@ -212,9 +232,9 @@ void MainWindow::render()
     orbitMatrix.setToIdentity();
     rotMatrix.setToIdentity();
     scale.scale(0.3f);
-    orbitRotMatrix.rotate(rotateY * move, 0, 1, 0);
+    orbitRotMatrix.rotate(m_frame, 0, 1, 0);
     orbitMatrix.translate(1.0f, 0, 0);
-    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    rotMatrix.rotate(m_frame, 0, 1, 0);
     cg::Planet mond("mond", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
@@ -222,9 +242,9 @@ void MainWindow::render()
     orbitMatrix.setToIdentity();
     rotMatrix.setToIdentity();
     scale.scale(0.5f);
-    orbitRotMatrix.rotate(0.5 * rotateY * move + 15, 0, 1, 0);
+    orbitRotMatrix.rotate(0.5 * m_frame + 15, 0, 1, 0);
     orbitMatrix.translate(10.0f, 0, 0);
-    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    rotMatrix.rotate(m_frame, 0, 1, 0);
     cg::Planet mars("mars", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
@@ -232,9 +252,9 @@ void MainWindow::render()
     orbitMatrix.setToIdentity();
     rotMatrix.setToIdentity();
     scale.scale(0.3f);
-    orbitRotMatrix.rotate(rotateY * move, 0, 1, 0);
+    orbitRotMatrix.rotate(m_frame, 0, 1, 0);
     orbitMatrix.translate(1.0f, 0, 0);
-    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    rotMatrix.rotate(m_frame, 0, 1, 0);
     cg::Planet deimos("deimos", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
@@ -242,9 +262,9 @@ void MainWindow::render()
     orbitMatrix.setToIdentity();
     rotMatrix.setToIdentity();
     scale.scale(0.15f);
-    orbitRotMatrix.rotate(rotateY * move *15, 0, 1, 0);
+    orbitRotMatrix.rotate(m_frame *15, 0, 1, 0);
     orbitMatrix.translate(1.0f, 0, 0);
-    rotMatrix.rotate(rotateY * move, 0, 1, 0);
+    rotMatrix.rotate(m_frame, 0, 1, 0);
     cg::Planet phobos("phobos", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     std::vector<cg::Planet*> vecPlanet {&sonne, &erde, &mond, &mars, &deimos, &phobos};
@@ -255,9 +275,10 @@ void MainWindow::render()
     sys.run();
 
 
-    QMatrix4x4 projMatrix;
-    projMatrix.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
-    QMatrix4x4 viewMatrix;
+    projMatrix.setToIdentity();
+    //projMatrix.perspective(60.f, 4.0f/3.0f, 0.1f, 100.0f);
+    projMatrix.perspective(60.f, width()/height(), 0.1f, 100.0f);
+    viewMatrix.setToIdentity();
     viewMatrix.translate(0, 0, -15);
     viewMatrix.rotate(45, 1, 0, 0);
 
@@ -318,8 +339,11 @@ void MainWindow::render()
 
     m_program->release();
 
-    ++m_frame;
-//    time(&time);
+    //Clear Matrices
+    scale.setToIdentity();
+    orbitRotMatrix.setToIdentity();
+    orbitMatrix.setToIdentity();
+    rotMatrix.setToIdentity();
 }
 
 void MainWindow::setRotation(int x, int y, int z)

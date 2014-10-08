@@ -40,6 +40,7 @@
 
 #include "mainwindow.h"
 #include <QApplication>
+#include <QMessageBox>
 #include "fileLoader.hpp"
 #include <iostream>
 #include "config.hpp"
@@ -50,7 +51,7 @@ int main(int argc, char **argv)
 
     QSurfaceFormat format;
     format.setSamples(4);
-    format.setVersion(4, 3);
+    format.setVersion(3, 2);
     format.setProfile(QSurfaceFormat::CoreProfile);
 
     MainWindow window;

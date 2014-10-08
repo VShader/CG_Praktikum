@@ -76,6 +76,15 @@ private:
 
 
     GLuint vao;
+    time_t lastTime;
+    time_t now;
+
+    QMatrix4x4 scale;
+    QMatrix4x4 orbitRotMatrix;
+    QMatrix4x4 orbitMatrix;
+    QMatrix4x4 rotMatrix;
+    QMatrix4x4 projMatrix;
+    QMatrix4x4 viewMatrix;
 
     bool fullScreen;
     GLuint m_position;
