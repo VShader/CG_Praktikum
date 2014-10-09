@@ -42,7 +42,7 @@
 #include "mainwindow.h"
 #include "controlWidget.hpp"
 
-#include <QtGui>
+#include <QKeyEvent>
 #include <ctime>
 
 #include "sunsystem.hpp"
@@ -56,6 +56,7 @@ MainWindow::MainWindow()
         control(new ControlWidget()),
         speed(1), rotateX(0), rotateY(0), rotateZ(0), lastTime(0)
 {
+
     control->show();
 
 //    connect(control, &ControlWidget::closing, this, &MainWindow::close);
@@ -80,12 +81,12 @@ GLuint MainWindow::loadShader(GLenum type, const char *source)
 
 void MainWindow::initialize()
 {
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
+    //Enable Deph test and backface culling.
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
+
+    //Create Shader
     m_program = new QOpenGLShaderProgram(this);
     cg::FileLoader loader;
     std::string address = RESOURCES;
@@ -95,6 +96,8 @@ void MainWindow::initialize()
     m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, temp.c_str());
     m_program->link();
 
+
+    //Determine attribute position
     m_position = m_program->attributeLocation("position");
     m_normal = m_program->attributeLocation("normal");
 
@@ -108,35 +111,51 @@ void MainWindow::initialize()
     m_specular_power = m_program->uniformLocation("specular_power");
     m_light_color = m_program->uniformLocation("light_color");
 
+
+    //Generate VAO and load Models
+    glGenVertexArrays(NumModels, vao);
+    glBindVertexArray(vao[Sphere]);
     myMesh = new cg::Mesh(loader.loadObj(address+"sphere.obj"));
     if(myMesh->vn.size() == 0)  loader.calcNormals(*myMesh);
+    faceSizeSphere = myMesh->v_f.size();
 
-    //Buffer
-        GLuint positionBuffer;
-        GLuint normalBuffer;
-//        GLuint colorBuffer;
-        GLuint indexBuffer;
-        glGenBuffers(1, &positionBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-        glBufferData(GL_ARRAY_BUFFER, myMesh->v.size()*sizeof(GLfloat), &myMesh->v[0], GL_STATIC_DRAW);
+    //Sphere
+    GLuint sphereBuffer[NumBuffers];
+    glGenBuffers(NumBuffers, sphereBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, sphereBuffer[Position]);
+    glBufferData(GL_ARRAY_BUFFER, myMesh->v.size()*sizeof(GLfloat), &myMesh->v[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(m_position, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(m_position);
 
-        glVertexAttribPointer(m_position, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-        glEnableVertexAttribArray(m_position);
+    glBindBuffer(GL_ARRAY_BUFFER, sphereBuffer[Normal]);
+    glBufferData(GL_ARRAY_BUFFER, myMesh->vn.size()*sizeof(GLfloat), &myMesh->vn[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(m_normal, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(m_normal);
 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereBuffer[Index]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, myMesh->v_f.size()*sizeof(GLuint), &myMesh->v_f[0], GL_STATIC_DRAW);
 
-        glGenBuffers(1, &indexBuffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, myMesh->v_f.size()*sizeof(GLuint), &myMesh->v_f[0], GL_STATIC_DRAW);
+    // Bunny
+    delete myMesh;
+    myMesh = new cg::Mesh(loader.loadObj(address+"bunny.obj"));
+    if(myMesh->vn.size() == 0)  loader.calcNormals(*myMesh);
+    faceSizeBunny = myMesh->v_f.size();
 
+    glBindVertexArray(vao[Bunny]);
+    GLuint bunnyBuffer[NumBuffers];
+    glGenBuffers(NumBuffers, bunnyBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, bunnyBuffer[Position]);
+    glBufferData(GL_ARRAY_BUFFER, myMesh->v.size()*sizeof(GLfloat), &myMesh->v[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(m_position, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(m_position);
 
+    glBindBuffer(GL_ARRAY_BUFFER, bunnyBuffer[Normal]);
+    glBufferData(GL_ARRAY_BUFFER, myMesh->vn.size()*sizeof(GLfloat), &myMesh->vn[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(m_normal, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(m_normal);
 
-
-        glGenBuffers(1, &normalBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-        glBufferData(GL_ARRAY_BUFFER, myMesh->vn.size()*sizeof(GLfloat), &myMesh->vn[0], GL_STATIC_DRAW);
-
-        glVertexAttribPointer(m_normal, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-        glEnableVertexAttribArray(m_normal);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bunnyBuffer[Index]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, myMesh->v_f.size()*sizeof(GLuint), &myMesh->v_f[0], GL_STATIC_DRAW);
 
 
 //        glClearBufferSubData(GL_ELEMENT_ARRAY_BUFFER, myMesh->);
@@ -214,8 +233,8 @@ void MainWindow::render()
 
     // Planet Matrix
     scale.scale(4.0f);
-    rotMatrix.rotate(m_frame, 0, 1, 0);
-    cg::Planet sonne("sonne", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+    rotMatrix.rotate(m_frame * 0.2, 0, 1, 0);
+    cg::Planet sonne("sonne", vao[Sphere], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
     orbitRotMatrix.setToIdentity();
@@ -225,7 +244,7 @@ void MainWindow::render()
     orbitRotMatrix.rotate(m_frame, 0, 1, 0);
     orbitMatrix.translate(5.0f, 0, 0);
     rotMatrix.rotate(m_frame, 0, 1, 0);
-    cg::Planet erde("erde", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+    cg::Planet erde("erde", vao[Sphere], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
     orbitRotMatrix.setToIdentity();
@@ -235,7 +254,7 @@ void MainWindow::render()
     orbitRotMatrix.rotate(m_frame, 0, 1, 0);
     orbitMatrix.translate(1.0f, 0, 0);
     rotMatrix.rotate(m_frame, 0, 1, 0);
-    cg::Planet mond("mond", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+    cg::Planet mond("mond", vao[Bunny], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
     orbitRotMatrix.setToIdentity();
@@ -245,7 +264,7 @@ void MainWindow::render()
     orbitRotMatrix.rotate(0.5 * m_frame + 15, 0, 1, 0);
     orbitMatrix.translate(10.0f, 0, 0);
     rotMatrix.rotate(m_frame, 0, 1, 0);
-    cg::Planet mars("mars", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+    cg::Planet mars("mars", vao[Sphere], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
     orbitRotMatrix.setToIdentity();
@@ -255,7 +274,7 @@ void MainWindow::render()
     orbitRotMatrix.rotate(m_frame, 0, 1, 0);
     orbitMatrix.translate(1.0f, 0, 0);
     rotMatrix.rotate(m_frame, 0, 1, 0);
-    cg::Planet deimos("deimos", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+    cg::Planet deimos("deimos", vao[Sphere], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     scale.setToIdentity();
     orbitRotMatrix.setToIdentity();
@@ -265,7 +284,7 @@ void MainWindow::render()
     orbitRotMatrix.rotate(m_frame *15, 0, 1, 0);
     orbitMatrix.translate(1.0f, 0, 0);
     rotMatrix.rotate(m_frame, 0, 1, 0);
-    cg::Planet phobos("phobos", &myMesh->v[0], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
+    cg::Planet phobos("phobos", vao[Sphere], scale, rotMatrix, orbitMatrix, orbitRotMatrix);
 
     std::vector<cg::Planet*> vecPlanet {&sonne, &erde, &mond, &mars, &deimos, &phobos};
     cg::Sunsystem sys;
@@ -300,6 +319,7 @@ void MainWindow::render()
 
     for(cg::Planet* n : vecPlanet)
     {
+        glBindVertexArray(n->vao);
 
         //glEnable(GL_BLEND);
         //glDisable(GL_DEPTH_TEST);
@@ -325,7 +345,8 @@ void MainWindow::render()
             m_program->setUniformValue(m_light, lightPosition);
             m_program->setUniformValue(m_light_color, light_color);
 //          glDrawArrays(GL_TRIANGLES, 0, myMesh->v.size()/3);
-            glDrawElements(GL_TRIANGLES, myMesh->v_f.size(), GL_UNSIGNED_INT, 0);
+            if(n->vao == vao[Sphere])   glDrawElements(GL_TRIANGLES, faceSizeSphere, GL_UNSIGNED_INT, 0);
+            else    glDrawElements(GL_TRIANGLES, faceSizeBunny, GL_UNSIGNED_INT, 0);
 //          glDrawElements(GL_TRIANGLES, myMesh->v_f.size(), GL_UNSIGNED_SHORT, &myMesh->v_f[0]);
         }
         //glDisable(GL_BLEND);

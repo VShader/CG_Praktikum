@@ -75,9 +75,13 @@ private:
     GLuint loadShader(GLenum type, const char *source);
 
 
-    GLuint vao;
+    enum Models {Sphere, Bunny, NumModels};
+    enum ModelValues {Position, Normal, Index, NumBuffers};
+    GLuint vao[NumModels];
     time_t lastTime;
     time_t now;
+    size_t faceSizeSphere;
+    size_t faceSizeBunny;
 
     QMatrix4x4 scale;
     QMatrix4x4 orbitRotMatrix;
